@@ -2,7 +2,7 @@ project:
   title:        "Random Pulse Generator"      # Project title
   author:       "Roshen Ramnarine"    # Your name
   discord:      "roro4311"            # Your discord username, for communication and automatically assigning you a Tapeout role (optional)
-  description:  "Measures reaction time and displays it on four 7-segment displays" # One line description of what your project does
+  description:  "Simulated radioactive source that generates random pulses" # One line description of what your project does
   language:     "Verilog"             # other examples include SystemVerilog, Amaranth, VHDL, etc
   clock_hz:     50000000              # Clock frequency in Hz (or 0 if not applicable)
 
@@ -16,10 +16,8 @@ project:
   # Source files must be in ./src and you must list each source file separately, one per line.
   # Don't forget to also update `PROJECT_SOURCES` in test/Makefile.
   source_files:
-    - "tt_um_morse_code.v"
-    - "button_input.v"
-    - "morse_decode.v"
-    - "seven_segment.v"
+    - "tt_um_random_pulse_generator.v"
+    - "random_pulse_generator.v"
 
 # The pinout of your project. Leave unused pins blank. DO NOT delete or add any pins.
 pinout:
