@@ -1,7 +1,7 @@
 # test.py - Cocotb test script for tt_um (Random Pulse Generator)
 import cocotb
 from cocotb.regression import TestFactory
-from cocotb.regulators import RisingEdge
+from cocotb.regression import RisingEdge
 from random import randint
 
 @cocotb.coroutine
