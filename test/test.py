@@ -1,59 +1,32 @@
-# test.py - Cocotb test script for tt_um (Random Pulse Generator)
+# test.py - Test script for Random Pulse Generator
 import cocotb
 from cocotb.regression import TestFactory
-from cocotb.triggers import RisingEdge
-from random import randint
+from cocotb.binary import BinaryValue
 
 @cocotb.coroutine
-def test_tt_um_random_pulse_generator(dut):
-    """ Test the tt_um module with random pulse generation """
+def random_pulse_generator_tb(dut):
+    # Initial setup (reset signal)
+    dut.rst_n <= 0
+    yield cocotb.regression.ClockCycles(dut.clk, 2)  # Wait for a couple of clock cycles
 
-    # Apply reset
-    dut.rst_n = 0
-    yield RisingEdge(dut.clk)
-    dut.rst_n = 1
+    # Release reset
+    dut.rst_n <= 1
+    yield cocotb.regression.ClockCycles(dut.clk, 2)  # Wait for a couple more clock cycles
 
-    # Enable pulse generation
-    dut.ena = 1
+    # Check pulse output after reset is released
+    assert dut.uio_out == BinaryValue(0b1, size=8), f"Expected pulse on uio_out, got {dut.uio_out}"
 
-    # Wait for a few clock cycles to observe pulse behavior
-    yield RisingEdge(dut.clk)
-    yield RisingEdge(dut.clk)
-    yield RisingEdge(dut.clk)
+    # Wait for the pulse to go low after the counter wraps
+    yield cocotb.regression.ClockCycles(dut.clk, 100)  # Wait for 100 clock cycles
 
-    # Check that a pulse has been generated (uio_out[0] should be high at some point)
-    pulse_generated = False
-    for _ in range(100):
-        if dut.uio_out.value == 1:
-            pulse_generated = True
-            break
-        yield RisingEdge(dut.clk)
+    # Check if pulse has returned to 0
+    assert dut.uio_out == BinaryValue(0b0, size=8), f"Expected no pulse on uio_out, got {dut.uio_out}"
 
-    assert pulse_generated, "Pulse was not generated as expected"
+    # End the simulation
+    yield cocotb.regression.ClockCycles(dut.clk, 200)
+    assert dut.uio_out == BinaryValue(0b0, size=8), f"Expected no pulse after simulation end, got {dut.uio_out}"
 
-    # Disable pulse generation and wait
-    dut.ena = 0
-    yield RisingEdge(dut.clk)
-    yield RisingEdge(dut.clk)
-
-    # Check that pulse has stopped (uio_out[0] should be low)
-    assert dut.uio_out.value == 0, f"Pulse was still active when it should have stopped, uio_out = {dut.uio_out.value}"
-
-    # Re-enable pulse generation and wait again
-    dut.ena = 1
-    yield RisingEdge(dut.clk)
-    yield RisingEdge(dut.clk)
-
-    # Check again that pulse is generated
-    pulse_generated = False
-    for _ in range(100):
-        if dut.uio_out.value == 1:
-            pulse_generated = True
-            break
-        yield RisingEdge(dut.clk)
-
-    assert pulse_generated, "Pulse was not generated as expected after re-enabling"
-
-# Create the test factory for the testbench
-factory = TestFactory(test_tt_um_random_pulse_generator)
-factory.generate_tests()
+# Define the test factory and add the test
+tf = TestFactory(random_pulse_generator_tb)
+tf.add_option("-v", "--vcd")  # To generate VCD waveform output (optional)
+tf.generate_tests()
