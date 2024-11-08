@@ -1,14 +1,23 @@
 // random_pulse_generator.v - Random Pulse Generator (Simulated Radioactive Source)
 module random_pulse_generator (
     input wire clk,           // Clock input
-    input wire rst_n,         // Active low reset
-    input wire ena,           // Enable signal
+    input wire button_in,     // Button input for reset
     output wire pulse         // Pulse output
 );
 
+    reg rst_n;                // Active low reset
     reg [15:0] counter;       // Counter for pulse generation
     reg [15:0] random_value;  // Random value (LFSR)
     reg pulse_reg;            // Register to store pulse signal
+
+    // Debounce the button input for reset signal
+    always @(posedge clk) begin
+        if (~button_in) begin
+            rst_n <= 0;  // Assert reset when button is pressed
+        end else begin
+            rst_n <= 1;  // Release reset when button is released
+        end
+    end
 
     // LFSR for randomness (Simple 16-bit Linear Feedback Shift Register)
     always @(posedge clk or negedge rst_n) begin
@@ -16,7 +25,7 @@ module random_pulse_generator (
             counter <= 16'b0;
             random_value <= 16'b1;  // Initialize random value
             pulse_reg <= 0;
-        end else if (ena) begin
+        end else begin
             counter <= counter + 1;
 
             // Simple 16-bit LFSR
