@@ -1,4 +1,4 @@
-// tt_um.v - Random Pulse Generator Wrapper Module
+// tt_um_random_pulse_generator.v - Random Pulse Generator Wrapper Module
 module tt_um_random_pulse_generator (
     input wire clk,           // Clock input
     input wire rst_n,         // Active low reset
@@ -15,9 +15,8 @@ module tt_um_random_pulse_generator (
     // Instantiate the random_pulse_generator module
     random_pulse_generator pulse_gen_inst (
         .clk(clk),
-        .rst_n(rst_n),
-        .ena(ena),
-        .pulse(pulse)
+        .button_in(rst_n),       // Use the rst_n as button input for reset functionality
+        .pulse(pulse)            // Output pulse signal
     );
 
     // Output assignments
