@@ -9,12 +9,12 @@ def test_tt_um_random_pulse_generator(dut):
     """ Test the tt_um module with random pulse generation """
 
     # Apply reset
-    dut.rst_n <= 0
+    dut.rst_n = 0
     yield RisingEdge(dut.clk)
-    dut.rst_n <= 1
+    dut.rst_n = 1
 
     # Enable pulse generation
-    dut.ena <= 1
+    dut.ena = 1
 
     # Wait for a few clock cycles to observe pulse behavior
     yield RisingEdge(dut.clk)
@@ -32,7 +32,7 @@ def test_tt_um_random_pulse_generator(dut):
     assert pulse_generated, "Pulse was not generated as expected"
 
     # Disable pulse generation and wait
-    dut.ena <= 0
+    dut.ena = 0
     yield RisingEdge(dut.clk)
     yield RisingEdge(dut.clk)
 
@@ -40,7 +40,7 @@ def test_tt_um_random_pulse_generator(dut):
     assert dut.uio_out.value == 0, f"Pulse was still active when it should have stopped, uio_out = {dut.uio_out.value}"
 
     # Re-enable pulse generation and wait again
-    dut.ena <= 1
+    dut.ena = 1
     yield RisingEdge(dut.clk)
     yield RisingEdge(dut.clk)
 
