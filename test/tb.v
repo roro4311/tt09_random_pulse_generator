@@ -1,22 +1,20 @@
-`timescale 1ns/1ps
+`timescale 1ns / 1ps
 
 // tb.v - Testbench for tt_um (Random Pulse Generator)
 module tb;
 
     // Testbench signals
-    reg clk;
-    reg rst_n;
-    reg ena;
-    wire [7:0] uo_out;
-    wire [7:0] uio_out;
-    wire [7:0] uio_oe;
-    reg [7:0] uio_in;
+    reg clk;                // Clock input
+    reg rst_n;              // Active low reset
+    wire [7:0] uo_out;     // Output (not used in this test, set to 0)
+    wire [7:0] uio_out;    // Output for pulse signal (1 bit used for the pulse)
+    wire [7:0] uio_oe;     // Output enable signal (for uio_out)
+    reg [7:0] uio_in;      // Input (unused in this design, can be set to 0)
 
-    // Instantiate the tt_um module
+    // Instantiate the tt_um_random_pulse_generator module
     tt_um_random_pulse_generator uut (
         .clk(clk),
         .rst_n(rst_n),
-        .ena(ena),
         .uo_out(uo_out),
         .uio_out(uio_out),
         .uio_oe(uio_oe),
@@ -33,17 +31,16 @@ module tb;
         // Initialize signals
         clk = 0;
         rst_n = 0;
-        ena = 0;
         uio_in = 8'b0;
 
         // Apply reset
         #10 rst_n = 1;    // Release reset after 10 time units
-        #10 ena = 1;      // Enable pulse generation
 
-        // Test case: Generate pulses for 100 time units
-        #100 ena = 0;     // Disable pulse generation
-        #50 ena = 1;      // Re-enable pulse generation
-        #100 $finish;     // End the simulation
+        // Test case: Wait and observe pulses
+        #100;              // Observe pulses for 100 time units
+
+        // End the simulation after 200 time units
+        #200 $finish;
     end
 
     // Monitor output
