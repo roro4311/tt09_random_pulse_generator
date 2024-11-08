@@ -9,14 +9,14 @@ module tt_um_random_pulse_generator (
     input wire [7:0] uio_in    // Input (unused in this design, can be set to 0)
 );
 
-    // Internal signal for pulse output from the random_pulse_generator module
+  // Internal signal for pulse output from the random_pulse_generator module
     wire pulse;
 
     // Instantiate the random_pulse_generator module
     random_pulse_generator pulse_gen_inst (
         .clk(clk),
-        .button_in(rst_n),       // Use the rst_n as button input for reset functionality
-        .pulse(pulse)            // Output pulse signal
+        .rst_n(rst_n),
+        .pulse(pulse)
     );
 
     // Output assignments
