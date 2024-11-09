@@ -1,4 +1,4 @@
-g`timescale 1ns / 1ps
+`timescale 1ns / 1ps
 
 // tb.v - Testbench for tt_um (Random Pulse Generator)
 module tb;
@@ -6,6 +6,7 @@ module tb;
     // Testbench signals
     reg clk;                // Clock input
     reg rst_n;              // Active low reset
+    reg ena,
     wire [7:0] uo_out;      // Output (unused in this test)
     wire [7:0] uio_out;     // Output for pulse signal (uio_out[0] for pulse)
     wire [7:0] uio_oe;      // Output enable signal (for uio_out)
@@ -15,6 +16,7 @@ module tb;
     tt_um_random_pulse_generator uut (
         .clk(clk),
         .rst_n(rst_n),
+        .ena,
         .uo_out(uo_out),
         .uio_out(uio_out),
         .uio_oe(uio_oe),
