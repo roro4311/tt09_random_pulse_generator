@@ -6,10 +6,10 @@ module tb;
     // Testbench signals
     reg clk;                // Clock input
     reg rst_n;              // Active low reset
-    wire [7:0] uo_out;     // Output (not used in this test, set to 0)
-    wire [7:0] uio_out;    // Output for pulse signal (1 bit used for the pulse)
-    wire [7:0] uio_oe;     // Output enable signal (for uio_out)
-    reg [7:0] uio_in;      // Input (unused in this design, can be set to 0)
+    wire [7:0] uo_out;      // Output (unused in this test)
+    wire [7:0] uio_out;     // Output for pulse signal (uio_out[0] for pulse)
+    wire [7:0] uio_oe;      // Output enable signal (for uio_out)
+    reg [7:0] uio_in;       // Input (unused in this design)
 
     // Instantiate the tt_um_random_pulse_generator module
     tt_um_random_pulse_generator uut (
@@ -36,16 +36,29 @@ module tb;
         // Apply reset
         #10 rst_n = 1;    // Release reset after 10 time units
 
-        // Test case: Wait and observe pulses
+        // Test case: Observe pulses
         #100;              // Observe pulses for 100 time units
 
         // End the simulation after 200 time units
         #200 $finish;
     end
 
-    // Monitor output
+    // Monitor output and detect pulses
+    integer pulse_count = 0;
+    integer last_pulse_time = 0;
+
     initial begin
         $monitor("Time = %0t, Pulse = %b", $time, uio_out[0]);
+        
+        // Monitor pulse on uio_out[0] and calculate intervals
+        forever begin
+            @(posedge clk);
+            if (uio_out[0]) begin
+                pulse_count = pulse_count + 1;
+                $display("Pulse #%0d at Time = %0t, Interval since last pulse = %0t", pulse_count, $time, $time - last_pulse_time);
+                last_pulse_time = $time;
+            end
+        end
     end
 
 endmodule
