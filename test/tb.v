@@ -22,7 +22,7 @@ module tb;
         .uio_out(uio_out),
         .uio_oe(uio_oe),
         .uio_in(uio_in),
-        .ena(ena),
+        .ena(ena)
     );
 
     // Clock generation
@@ -52,5 +52,18 @@ module tb;
 
         #2000;
         $stop;
+    end
+
+    // Simulate rotary encoder signals
+    initial begin
+        clk_in = 0;
+        dt_in = 0;
+        
+        #200;  // Delay before starting rotary encoder signals
+        forever begin
+            // Simulate encoder phase relationship
+            #40 clk_in = ~clk_in;
+            #40 dt_in = ~dt_in;
+        end
     end
 endmodule
