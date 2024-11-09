@@ -1,12 +1,13 @@
 // tt_um_random_pulse_generator.v - Random Pulse Generator Wrapper Module
 module tt_um_random_pulse_generator (
-    input wire clk,           // Clock input
-    input wire rst_n,         // Active low reset
-    input wire ena,           // Enable signal
-    output wire [7:0] uo_out, // Output (not used in this project, set to 0)
-    output wire [7:0] uio_out, // Output for pulse signal (1 bit used for the pulse)
-    output wire [7:0] uio_oe,  // Output enable signal (for uio_out)
-    input wire [7:0] uio_in    // Input (unused in this design, can be set to 0)
+     input wire clk,
+    input wire rst_n,
+    input wire [7:0] ui_in,
+    output wire [7:0] uo_out,
+    output wire [7:0] uio_out,
+    output wire [7:0] uio_oe,
+    input wire [7:0] uio_in,
+    input wire ena
 );
 
   // Internal signal for pulse output from the random_pulse_generator module
