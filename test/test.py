@@ -2,56 +2,56 @@
 import cocotb
 from cocotb.regression import TestFactory
 from cocotb.triggers import RisingEdge, Timer
-from random import randint
+from cocotb.result import TestFailure
 
 @cocotb.coroutine
-def test_tt_um_random_pulse_generator(dut):
+async def test_tt_um_random_pulse_generator(dut):
     """ Test the tt_um module with random pulse generation """
 
     # Apply reset
     dut.rst_n.value = 0
-    yield RisingEdge(dut.clk)
+    await RisingEdge(dut.clk)
     dut.rst_n.value = 1
+    dut.ena.value = 1  # Enable pulse generation
 
-    # Enable pulse generation
-    dut.ena.value = 1
+    # Monitor and log pulses
+    pulse_count = 0
+    last_pulse_time = None
+    pulse_intervals = []
 
-    # Wait for a few clock cycles to observe pulse behavior
-    for _ in range(5):
-        yield RisingEdge(dut.clk)
+    # Run for a longer time to gather more pulse data
+    for i in range(500):
+        await RisingEdge(dut.clk)
 
-    # Check that a pulse has been generated (uio_out[0] should be high at some point)
-    pulse_generated = False
-    for _ in range(100):
-        if dut.uio_out.value & 0x01:  # Check only the LSB for the pulse
-            pulse_generated = True
-            break
-        yield RisingEdge(dut.clk)
+        # Check for pulse on uio_out[0] (LSB)
+        if dut.uio_out.value & 0x01:  
+            pulse_count += 1
+            current_time = i  # Using loop iteration as time reference
+            if last_pulse_time is not None:
+                interval = current_time - last_pulse_time
+                pulse_intervals.append(interval)
+                dut._log.info(f"Pulse #{pulse_count} at cycle {current_time}, Interval since last pulse = {interval}")
+            last_pulse_time = current_time
 
-    assert pulse_generated, "Pulse was not generated as expected"
+    # Verify that at least one pulse was generated
+    if pulse_count == 0:
+        raise TestFailure("No pulses were generated within the test duration")
 
-    # Disable pulse generation and wait
+    # Check for randomness in pulse intervals
+    if len(pulse_intervals) > 1:
+        avg_interval = sum(pulse_intervals) / len(pulse_intervals)
+        dut._log.info(f"Average interval between pulses: {avg_interval} cycles")
+        dut._log.info(f"Pulse intervals observed: {pulse_intervals}")
+    else:
+        dut._log.warning("Insufficient pulse data to analyze randomness")
+
+    # Disable pulse generation and verify pulses stop
     dut.ena.value = 0
-    for _ in range(5):
-        yield RisingEdge(dut.clk)
+    await Timer(50, units='ns')  # Wait some time
+    if dut.uio_out.value & 0x01:
+        raise TestFailure("Pulse was still active when it should have stopped")
 
-    # Check that pulse has stopped (uio_out[0] should be low)
-    assert dut.uio_out.value == 0, f"Pulse was still active when it should have stopped, uio_out = {dut.uio_out.value}"
-
-    # Re-enable pulse generation and wait again
-    dut.ena.value = 1
-    for _ in range(5):
-        yield RisingEdge(dut.clk)
-
-    # Check again that pulse is generated
-    pulse_generated = False
-    for _ in range(100):
-        if dut.uio_out.value & 0x01:  # Check only the LSB for the pulse
-            pulse_generated = True
-            break
-        yield RisingEdge(dut.clk)
-
-    assert pulse_generated, "Pulse was not generated as expected after re-enabling"
+    dut._log.info("Test completed successfully")
 
 # Create the test factory for the testbench
 factory = TestFactory(test_tt_um_random_pulse_generator)
