@@ -1,41 +1,41 @@
 // tb.v - Testbench for tt_um_random_pulse_generator
-`timescale 1ns / 1ps
-
 module tb;
 
-    // Signals
     reg clk;
     reg rst_n;
+    reg ena;
     wire [7:0] uo_out;
     wire [7:0] uio_out;
     wire [7:0] uio_oe;
     reg [7:0] uio_in;
 
     // Instantiate the DUT
-    tt_um_random_pulse_generator uut (
+    tt_um_random_pulse_generator dut (
         .clk(clk),
         .rst_n(rst_n),
+        .ena(ena),
         .uo_out(uo_out),
         .uio_out(uio_out),
         .uio_oe(uio_oe),
         .uio_in(uio_in)
     );
 
-    // Generate clock signal with 10ns period
-    initial clk = 0;
-    always #5 clk = ~clk;
-
-    // Apply reset and stimulus
+    // Clock generation
     initial begin
-        rst_n = 0;
-        uio_in = 8'b0;
-        #10 rst_n = 1;   // Release reset after 10ns
-        #2000 $finish;   // End simulation after 2000ns
+        clk = 0;
+        forever #5 clk = ~clk;  // 100 MHz clock
     end
 
-    // Monitor pulse output
+    // Test sequence
     initial begin
-        $monitor("Time = %0t, Pulse = %b", $time, uio_out[0]);
+        rst_n = 0;
+        ena = 0;
+        uio_in = 8'b0;
+        #20;                     // Hold reset
+        rst_n = 1;               // Release reset
+        ena = 1;                 // Enable the generator
+        #1000;                   // Run the test for a certain period
+        $finish;                 // End simulation
     end
 
 endmodule
