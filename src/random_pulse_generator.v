@@ -2,37 +2,31 @@
 module random_pulse_generator (
     input wire clk,           // Clock input
     input wire rst_n,         // Active low reset
-    input wire ena,
-    output wire pulse         // Pulse output
+    output reg pulse          // Pulse output
 );
 
+    reg [15:0] lfsr;          // 16-bit Linear Feedback Shift Register (LFSR) for randomness
     reg [15:0] counter;       // Counter for pulse generation
-    reg [15:0] random_value;  // Random value (LFSR)
-    reg pulse_reg;            // Register to store pulse signal
 
-    // LFSR for randomness (Simple 16-bit Linear Feedback Shift Register)
+    // LFSR implementation for randomness
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            counter <= 16'b0;
-            random_value <= 16'b1;  // Initialize random value
-            pulse_reg <= 0;
+            lfsr <= 16'hACE1;     // Initialize the LFSR with a non-zero seed
+            counter <= 0;
+            pulse <= 0;
         end else begin
+            // Shift and feedback to create a pseudo-random number
+            lfsr <= {lfsr[14:0], lfsr[15] ^ lfsr[13] ^ lfsr[12] ^ lfsr[10]};
             counter <= counter + 1;
 
-            // Simple 16-bit LFSR
-            random_value <= {random_value[14:0], random_value[15] ^ random_value[13] ^ random_value[12] ^ random_value[10]};
-
-            // Compare counter with random_value to generate pulses at random intervals
-            if (counter >= random_value) begin
-                pulse_reg <= 1;
-                counter <= 16'b0;  // Reset counter after pulse
+            // Generate a pulse when the counter matches the LFSR value
+            if (counter == lfsr) begin
+                pulse <= 1;
+                counter <= 0;  // Reset the counter after each pulse
             end else begin
-                pulse_reg <= 0;
+                pulse <= 0;
             end
         end
     end
-
-    // Output the pulse signal
-    assign pulse = pulse_reg;
 
 endmodule
