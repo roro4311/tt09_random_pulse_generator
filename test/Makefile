@@ -5,7 +5,7 @@
 SIM ?= icarus
 TOPLEVEL_LANG ?= verilog
 SRC_DIR = $(PWD)/../src
-PROJECT_SOURCES = tt_um_random_pulse_generator.v random_pulse_generator.v
+PROJECT_SOURCES = tt_um_random_pulse_generator.v random_pulse_generator.v rotary_encoder.v
 
 ifneq ($(GATES),yes)
 
