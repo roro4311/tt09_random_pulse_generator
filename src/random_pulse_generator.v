@@ -2,6 +2,7 @@
 module random_pulse_generator (
     input wire clk,           // Clock input
     input wire rst_n,         // Active low reset
+    input wire ena,
     output wire pulse         // Pulse output
 );
 
