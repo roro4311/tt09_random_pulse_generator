@@ -1,36 +1,35 @@
-// random_pulse_generator.v - Random Pulse Generator (Simulated Radioactive Source)
 module random_pulse_generator (
-    input wire clk,           // Clock input
-    input wire rst_n,         // Active low reset
-    output reg pulse          // Pulse output
+    input wire clk,
+    input wire rst_n,
+    output reg pulse,
+    input wire [1:0] frequency  // Input from rotary encoder to control pulse frequency
 );
 
-    reg [15:0] lfsr;          // 16-bit Linear Feedback Shift Register (LFSR) for randomness
-    reg [15:0] counter;       // Counter for pulse generation
-    reg [7:0] pulse_freq_counter;  // Additional counter to control pulse frequency
+    reg [31:0] cnt;
+    reg [31:0] thresh;
 
-    // LFSR implementation for randomness
+    // Adjust threshold based on rotary encoder value (frequency control)
+    always @* begin
+        case (frequency)
+            2'b00: thresh = 32'h00100000;   // Slowest pulse frequency
+            2'b01: thresh = 32'h00080000;   // Faster pulse frequency
+            2'b10: thresh = 32'h00040000;   // Even faster pulse frequency
+            2'b11: thresh = 32'h00020000;   // Fastest pulse frequency
+            default: thresh = 32'h00100000;
+        endcase
+    end
+
+    // Pulse generation logic (random-like based on shift register)
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            lfsr <= 16'hACE1;     // Initialize the LFSR with a non-zero seed
-            counter <= 0;
-            pulse <= 0;
-            pulse_freq_counter <= 0;
+            cnt <= 32'haaaaaaa;   // Initial value
+            pulse <= 1'b0;
         end else begin
-            // Shift and feedback to create a pseudo-random number
-            lfsr <= {lfsr[14:0], lfsr[15] ^ lfsr[13] ^ lfsr[12] ^ lfsr[10]};
-            counter <= counter + 1;
-
-            // Increment the pulse frequency counter (to control pulse generation rate)
-            pulse_freq_counter <= pulse_freq_counter + 1;
-
-            // Generate a pulse when the lower 8 bits of counter match the lower 8 bits of LFSR
-            if (counter[7:0] == lfsr[7:0] && pulse_freq_counter == 8'hFF) begin
-                pulse <= 1;
-                counter <= 0;  // Reset the counter after each pulse
-                pulse_freq_counter <= 0;  // Reset the pulse frequency counter
+            cnt <= {cnt[30:0], (cnt[31] ^ cnt[21] ^ cnt[1] ^ cnt[0])};
+            if (cnt < thresh) begin
+                pulse <= 1'b1;
             end else begin
-                pulse <= 0;
+                pulse <= 1'b0;
             end
         end
     end
