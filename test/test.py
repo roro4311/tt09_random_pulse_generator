@@ -1,29 +1,42 @@
 import cocotb
-from cocotb.triggers import RisingEdge
+from cocotb.clock import Clock
+from cocotb.triggers import RisingEdge, Timer
+import random
 
 @cocotb.test()
 async def test_random_pulse_generator(dut):
-    """ Test the random pulse generator with a continuous enable """
+    """Test random pulse generator with rotary encoder adjustments"""
 
-    # Reset the device
+    # Generate the clock
+    cocotb.start_soon(Clock(dut.clk, 20, units="ns").start())  # 50 MHz
+
+    # Apply reset
     dut.rst_n.value = 0
-    await RisingEdge(dut.clk)
-    dut.rst_n.value = 1  # Release reset
+    await Timer(100, units="ns")
+    dut.rst_n.value = 1
 
-    # Monitor the pulse, counter, LFSR, and pulse_freq_counter for 20,000 clock cycles
-    for cycle in range(20000):
-        await RisingEdge(dut.clk)
-        
-        # Capture current values
-        pulse = dut.pulse.value
-        counter = dut.counter.value
-        lfsr = dut.lfsr.value
-        pulse_freq_counter = dut.pulse_freq_counter.value
+    # Enable the module
+    dut.ena.value = 1
 
-        # Log these values for insight
-        dut._log.info(f"Cycle: {cycle}, Pulse: {pulse}, Counter: {counter}, LFSR: {lfsr}, Pulse Frequency Counter: {pulse_freq_counter}")
-        
-        # Check if pulse is generated as expected
-        if pulse == 1:
-            dut._log.info(f"Pulse generated at cycle {cycle} with Counter: {counter}, LFSR: {lfsr}, Pulse Frequency Counter: {pulse_freq_counter}")
-            break  # Optional: Stop the test if a pulse is observed
+    # Set initial rotary encoder value and monitor pulse behavior
+    for encoder_val in [1, 5, 15]:  # Simulating low, medium, and high frequency settings
+        dut.ui_in.value = encoder_val
+        await Timer(1000, units="ns")  # Wait to observe pulse pattern
+
+        # Check if pulse output changes based on ui_in frequency input
+        pulse_changes = 0
+        last_pulse = dut.uio_out.value & 0x01  # Monitor only the LSB of uio_out (pulse)
+
+        for _ in range(100):  # Check over 100 clock cycles
+            await RisingEdge(dut.clk)
+            current_pulse = dut.uio_out.value & 0x01
+            if current_pulse != last_pulse:
+                pulse_changes += 1
+            last_pulse = current_pulse
+
+        cocotb.log.info(f"Encoder setting {encoder_val}: Pulse toggled {pulse_changes} times.")
+        assert pulse_changes > 0, f"Pulse did not toggle as expected with encoder setting {encoder_val}"
+
+    # Finish test
+    dut.ena.value = 0
+    await Timer(100, units="ns")
