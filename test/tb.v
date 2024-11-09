@@ -34,7 +34,7 @@ module tb;
         #20;                     // Hold reset
         rst_n = 1;               // Release reset
         ena = 1;                 // Enable the generator
-        #1000;                   // Run the test for a certain period
+        #20000;                   // Run the test for a certain period
         $finish;                 // End simulation
     end
 
