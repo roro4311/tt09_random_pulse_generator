@@ -23,8 +23,6 @@ module tb;
         .uio_oe(uio_oe),
         .uio_in(uio_in),
         .ena(ena),
-        .clk_in(clk_in),
-        .dt_in(dt_in)
     );
 
     // Clock generation
